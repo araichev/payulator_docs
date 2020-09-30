@@ -1,0 +1,438 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payulator 3.4.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="payulator-version-documentation">
+<h1>Payulator 3.4.0 documentation<a class="headerlink" href="#payulator-version-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<span id="document-introduction"></span><div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>A small Python 3.6+ library that calculates loan payments.
+Similar to the business loan calculator at <a class="reference external" href="https://www.calculator.net/business-loan-calculator.html">Calculator.net</a>.</p>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">payulator</span></code></p>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>Play with the examples in the Jupyter notebook at <code class="docutils literal notranslate"><span class="pre">ipynb/examples.ipynb</span></code>
+You can even do so online by clicking the Binder badge above.</p>
+</div>
+<div class="section" id="authors">
+<h2>Authors<a class="headerlink" href="#authors" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Alex Raichev, 2018-01-20</p></li>
+</ul>
+</div>
+<span id="document-modules"></span><div class="section" id="module-payulator.constants">
+<span id="module-constants"></span><h2>Module constants<a class="headerlink" href="#module-payulator.constants" title="Permalink to this headline">¶</a></h2>
+<dl class="py data">
+<dt id="payulator.constants.LOAN_ATTRS">
+<code class="sig-prename descclassname">payulator.constants.</code><code class="sig-name descname">LOAN_ATTRS</code><em class="property"> = ['code', 'kind', 'principal', 'interest_rate', 'payment_freq', 'compounding_freq', 'num_payments', 'first_payment_date', 'fee']</em><a class="headerlink" href="#payulator.constants.LOAN_ATTRS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt id="payulator.constants.NUM_BY_FREQ">
+<code class="sig-prename descclassname">payulator.constants.</code><code class="sig-name descname">NUM_BY_FREQ</code><em class="property"> = {'annually': 1, 'bimonthly': 6, 'continuously': inf, 'daily': 365, 'fortnightly': 26, 'monthly': 12, 'quarterly': 4, 'semiannually': 2, 'triannually': 3, 'weekly': 52}</em><a class="headerlink" href="#payulator.constants.NUM_BY_FREQ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Frequency string -&gt; number of occurrences per year</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-payulator.helpers">
+<span id="module-helpers"></span><h2>Module helpers<a class="headerlink" href="#module-payulator.helpers" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="payulator.helpers.aggregate_payment_schedules">
+<code class="sig-prename descclassname">payulator.helpers.</code><code class="sig-name descname">aggregate_payment_schedules</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">payment_schedules</span><span class="p">:</span> <span class="n">List<span class="p">[</span>pandas.core.frame.DataFrame<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">start_date</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">end_date</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">freq</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="headerlink" href="#payulator.helpers.aggregate_payment_schedules" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of payment schedules in the form output by the
+function <a class="reference internal" href="#payulator.helpers.summarize_amortized_loan" title="payulator.helpers.summarize_amortized_loan"><code class="xref py py-func docutils literal notranslate"><span class="pre">summarize_amortized_loan()</span></code></a> do the following.
+Concatenate the payment schedules.
+If all the schedules have a payment date column, then slice
+to the given start date and end date (inclusive), group by
+payment date, and resample at the given Pandas frequency
+(not a frequency in <code class="xref py py-const docutils literal notranslate"><span class="pre">NUM_BY_FREQ</span></code>) by summing.
+Otherwise, group by payment sequence and sum.
+Return resulting DataFrame with the columns</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;payment_date&quot;</span></code>: (optional) Numpy Datetime object; present only if
+all given payment schedules have a payment_date column</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;payment_sequence&quot;</span></code>: (optional) integer; present only if not all the given
+payment schedules have a payment_date column</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;principal_payment&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;interest_payment&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;fee_payment&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;total_payment&quot;</span></code>: sum of principal_payment, interest_payment, and fee_payment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;principal_payment_cumsum&quot;</span></code>: cumulative sum of principal_payment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;interest_payment_cumsum&quot;</span></code>: cumulative sum of interest_payment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;fee_payment_cumsum&quot;</span></code>: cumulative sum of fee_payment</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py function">
+<dt id="payulator.helpers.amortize">
+<code class="sig-prename descclassname">payulator.helpers.</code><code class="sig-name descname">amortize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">principal</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">interest_rate</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">compounding_freq</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">payment_freq</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">num_payments</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#payulator.helpers.amortize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given the loan parameters</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">principal</span></code>: (float) amount of loan, that is, the principal</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interest_rate</span></code>: (float) nominal annual interest rate
+(not as a percentage), e.g. 0.1 for 10%</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compounding_freq</span></code>: (string) compounding frequency;
+one of the keys of <code class="xref py py-const docutils literal notranslate"><span class="pre">NUM_BY_FREQ</span></code>, e.g. “monthly”</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">payment_freq</span></code>: (string) payments frequency;
+one of the keys of <code class="xref py py-const docutils literal notranslate"><span class="pre">NUM_BY_FREQ</span></code>, e.g. “monthly”</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_payments</span></code>: (integer) number of payments in the loan
+term</p></li>
+</ul>
+<p>return the periodic payment amount due to
+amortize the loan into equal payments occurring at the frequency
+<code class="docutils literal notranslate"><span class="pre">payment_freq</span></code>.
+See the function <a class="reference internal" href="#payulator.helpers.freq_to_num" title="payulator.helpers.freq_to_num"><code class="xref py py-func docutils literal notranslate"><span class="pre">freq_to_num()</span></code></a> for valid frequncies.</p>
+<p>Notes:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://en.wikipedia.org/wiki/Amortization_calculator">https://en.wikipedia.org/wiki/Amortization_calculator</a></p></li>
+<li><p><a class="reference external" href="https://www.vertex42.com/ExcelArticles/amortization-calculation.html">https://www.vertex42.com/ExcelArticles/amortization-calculation.html</a></p></li>
+</ul>
+</dd></dl>
+
+<dl class="py function">
+<dt id="payulator.helpers.build_principal_fn">
+<code class="sig-prename descclassname">payulator.helpers.</code><code class="sig-name descname">build_principal_fn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">principal</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">interest_rate</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">compounding_freq</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">payment_freq</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">num_payments</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#payulator.helpers.build_principal_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the remaining loan principal, the loan balance,
+as a function of the number of payments made.
+Return the resulting function.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="payulator.helpers.compute_period_interest_rate">
+<code class="sig-prename descclassname">payulator.helpers.</code><code class="sig-name descname">compute_period_interest_rate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">interest_rate</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">compounding_freq</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">payment_freq</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; float<a class="headerlink" href="#payulator.helpers.compute_period_interest_rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the interest rate per payment period given
+an annual interest rate, a compounding frequency, and a payment
+freq.
+See the function <a class="reference internal" href="#payulator.helpers.freq_to_num" title="payulator.helpers.freq_to_num"><code class="xref py py-func docutils literal notranslate"><span class="pre">freq_to_num()</span></code></a> for acceptable frequencies.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="payulator.helpers.freq_to_num">
+<code class="sig-prename descclassname">payulator.helpers.</code><code class="sig-name descname">freq_to_num</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">freq</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="o">*</span></em>, <em class="sig-param"><span class="n">allow_cts</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>int<span class="p">, </span>float<span class="p">]</span><a class="headerlink" href="#payulator.helpers.freq_to_num" title="Permalink to this definition">¶</a></dt>
+<dd><p>Map frequency name to number of occurrences per year via
+<code class="xref py py-const docutils literal notranslate"><span class="pre">NUM_BY_FREQ</span></code>.
+If not <code class="docutils literal notranslate"><span class="pre">allow_cts</span></code>, then remove the <code class="docutils literal notranslate"><span class="pre">&quot;continuouly&quot;</span></code> option.
+Raise a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> in case of no frequency match.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="payulator.helpers.summarize_amortized_loan">
+<code class="sig-prename descclassname">payulator.helpers.</code><code class="sig-name descname">summarize_amortized_loan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">principal</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">interest_rate</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">compounding_freq</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">payment_freq</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">num_payments</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">fee</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">first_payment_date</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">decimals</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">2</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#payulator.helpers.summarize_amortized_loan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Amortize a loan with the given parameters according to the function
+<a class="reference internal" href="#payulator.helpers.amortize" title="payulator.helpers.amortize"><code class="xref py py-func docutils literal notranslate"><span class="pre">amortize()</span></code></a>, and return a dictionary with the following keys
+and values:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;payment_schedule&quot;</span></code>: DataFrame; schedule of loan payments
+broken into principal payments and interest payments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;periodic_payment&quot;</span></code>: periodic payment amount according to
+amortization</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;interest_total&quot;</span></code>: total interest paid on loan</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;interest_and_fee_total&quot;</span></code>: interest_total plus loan fee</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;payment_total&quot;</span></code>: total of all loan payments, including the
+loan fee</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;interest_and_fee_total/principal</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;first_payment_date&quot;</span></code> (optional): first payment date (as as YYYY-MM-DD) string if one is given</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;last_payment_date&quot;</span></code> (optional): last payment date (as as YYYY-MM-DD) string if a first payment date is given</p></li>
+</ul>
+<p>If a first payment date is given (YYYY-MM-DD string), then include payment
+dates in the payment schedule.
+Round all values to the given number of decimal places, but do not
+round if <code class="docutils literal notranslate"><span class="pre">decimals</span> <span class="pre">is</span> <span class="pre">None</span></code>.</p>
+<p>The payment schedule has the columns:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;payment_sequence&quot;</span></code>: integer</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;payment_date&quot;</span></code>: (optional) YYYY-MM-DD date string if <code class="docutils literal notranslate"><span class="pre">first_payment_date</span></code>
+is given</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;beginning_balance&quot;</span></code>: float; balance on the payment date before the principal
+payment is made</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;principal_payment&quot;</span></code>: float; principal payment made on payment date</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;ending_balance&quot;</span></code>: float; balance on the payment date after the principal
+payment is made</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;interest_payment&quot;</span></code>: float; interest payment made on payment date</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;fee_payment&quot;</span></code>: float; fee payment made on payment date; equals the fee on
+the first payment date and 0 elsewhere</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;notes&quot;</span></code>: NaN</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py function">
+<dt id="payulator.helpers.summarize_interest_only_loan">
+<code class="sig-prename descclassname">payulator.helpers.</code><code class="sig-name descname">summarize_interest_only_loan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">principal</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">interest_rate</span><span class="p">:</span> <span class="n">float</span></em>, <em class="sig-param"><span class="n">payment_freq</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">num_payments</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">fee</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">first_payment_date</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">decimals</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">2</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#payulator.helpers.summarize_interest_only_loan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a payment schedule etc. for an interest-only loan
+with the given parameters (see the doctstring of <a class="reference internal" href="#payulator.helpers.amortize" title="payulator.helpers.amortize"><code class="xref py py-func docutils literal notranslate"><span class="pre">amortize()</span></code></a>).
+Return a dictionary with the following keys and values.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;payment_schedule&quot;</span></code>: DataFrame; schedule of loan payments
+broken into principal payments and interest payments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;periodic_payment&quot;</span></code>: the periodic interest payment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;interest_total&quot;</span></code>: total interest paid on loan</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;interest_and_fee_total&quot;</span></code>: interest_total plus loan fee</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;payment_total&quot;</span></code>: total of all loan payments, including the
+loan fee</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;interest_and_fee_total/principal</span></code>: interest_and_fee_total/principal</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;first_payment_date&quot;</span></code> (optional): first payment date (as as YYYY-MM-DD) string if one is given</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;last_payment_date&quot;</span></code> (optional): last payment date (as as YYYY-MM-DD) string if a first payment date is given</p></li>
+</ul>
+<p>If a start date is given (YYYY-MM-DD string), then include payment
+dates in the payment schedule.
+Round all values to the given number of decimal places, but do not
+round if <code class="docutils literal notranslate"><span class="pre">decimals</span> <span class="pre">is</span> <span class="pre">None</span></code>.</p>
+<p>The payment schedule has the columns:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;payment_sequence&quot;</span></code>: integer</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;payment_date&quot;</span></code>: (optional) YYYY-MM-DD date string if <code class="docutils literal notranslate"><span class="pre">first_payment_date</span></code>
+is given</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;beginning_balance&quot;</span></code>: float; balance on the payment date before the principal
+payment is made</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;principal_payment&quot;</span></code>: float; principal payment made on payment date</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;ending_balance&quot;</span></code>: float; balance on the payment date after the principal
+payment is made</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;interest_payment&quot;</span></code>: float; interest payment made on payment date</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;fee_payment&quot;</span></code>: float; fee payment made on payment date; equals the fee on
+the first payment date and 0 elsewhere</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;notes&quot;</span></code>: NaN</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py function">
+<dt id="payulator.helpers.to_date_offset">
+<code class="sig-prename descclassname">payulator.helpers.</code><code class="sig-name descname">to_date_offset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_per_year</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>pandas._libs.tslibs.offsets.DateOffset<span class="p">]</span><a class="headerlink" href="#payulator.helpers.to_date_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the given number of occurrences per year to its
+corresponding period (Pandas DateOffset object),
+e.g. map 4 to <code class="docutils literal notranslate"><span class="pre">pd.DateOffset(months=3)</span></code>.
+Return <code class="docutils literal notranslate"><span class="pre">None</span></code> if num_per_year is not one of
+<code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4,</span> <span class="pre">6,</span> <span class="pre">12,</span> <span class="pre">26,</span> <span class="pre">52,</span> <span class="pre">365]</span></code>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-payulator.loan">
+<span id="module-loan"></span><h2>Module loan<a class="headerlink" href="#module-payulator.loan" title="Permalink to this headline">¶</a></h2>
+<p>Module defining the Loan class.</p>
+<dl class="py class">
+<dt id="payulator.loan.Loan">
+<em class="property">class </em><code class="sig-prename descclassname">payulator.loan.</code><code class="sig-name descname">Loan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">code</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">kind</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'amortized'</span></em>, <em class="sig-param"><span class="n">principal</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">interest_rate</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">payment_freq</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'monthly'</span></em>, <em class="sig-param"><span class="n">compounding_freq</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_payments</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">fee</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">first_payment_date</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#payulator.loan.Loan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents a loan.
+Parameters are</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">code</span></code>: code name for the loan; defaults to a
+timestamp-based code</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kind</span></code>: kind of loan; ‘amortized’ or ‘interest_only’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">principal</span></code>: amount of loan, that is, the principal</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interest_rate</span></code>: nominal annual interest rate
+(not as a percentage), e.g. 0.1 for 10%</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">payment_freq</span></code>: payments frequency;
+one of the keys of <code class="xref py py-const docutils literal notranslate"><span class="pre">NUM_BY_FREQ</span></code>, e.g. ‘monthly’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compounding_freq</span></code>: compounding frequency;
+one of the keys of <code class="xref py py-const docutils literal notranslate"><span class="pre">NUM_BY_FREQ</span></code>, e.g. ‘monthly’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_payments</span></code>: number of payments in the loan
+term</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fee</span></code>: loan fee</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">first_payment_date</span></code>: (YYYY-MM-DD date string) date of first loan
+payment</p></li>
+</ul>
+<dl class="py attribute">
+<dt id="payulator.loan.Loan.code">
+<code class="sig-name descname">code</code><em class="property">: Optional<span class="p">[</span>str<span class="p">]</span></em><em class="property"> = None</em><a class="headerlink" href="#payulator.loan.Loan.code" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payulator.loan.Loan.compounding_freq">
+<code class="sig-name descname">compounding_freq</code><em class="property">: Optional<span class="p">[</span>str<span class="p">]</span></em><em class="property"> = None</em><a class="headerlink" href="#payulator.loan.Loan.compounding_freq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payulator.loan.Loan.fee">
+<code class="sig-name descname">fee</code><em class="property">: float</em><em class="property"> = 0</em><a class="headerlink" href="#payulator.loan.Loan.fee" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payulator.loan.Loan.first_payment_date">
+<code class="sig-name descname">first_payment_date</code><em class="property">: Optional<span class="p">[</span>str<span class="p">]</span></em><em class="property"> = None</em><a class="headerlink" href="#payulator.loan.Loan.first_payment_date" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payulator.loan.Loan.interest_rate">
+<code class="sig-name descname">interest_rate</code><em class="property">: float</em><em class="property"> = 0</em><a class="headerlink" href="#payulator.loan.Loan.interest_rate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payulator.loan.Loan.kind">
+<code class="sig-name descname">kind</code><em class="property">: str</em><em class="property"> = 'amortized'</em><a class="headerlink" href="#payulator.loan.Loan.kind" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payulator.loan.Loan.num_payments">
+<code class="sig-name descname">num_payments</code><em class="property">: int</em><em class="property"> = 1</em><a class="headerlink" href="#payulator.loan.Loan.num_payments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payulator.loan.Loan.payment_freq">
+<code class="sig-name descname">payment_freq</code><em class="property">: str</em><em class="property"> = 'monthly'</em><a class="headerlink" href="#payulator.loan.Loan.payment_freq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="payulator.loan.Loan.principal">
+<code class="sig-name descname">principal</code><em class="property">: float</em><em class="property"> = 1</em><a class="headerlink" href="#payulator.loan.Loan.principal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="payulator.loan.Loan.summarize">
+<code class="sig-name descname">summarize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">decimals</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">2</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#payulator.loan.Loan.summarize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the result of <code class="xref py py-func docutils literal notranslate"><span class="pre">helpers.summarize_amortized_loan()</span></code>
+is this Loan is amortized or
+<code class="xref py py-func docutils literal notranslate"><span class="pre">helpers.summarize_interest_only_loan()</span></code> if this Loan is
+interest-only.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="payulator.loan.build_loan">
+<code class="sig-prename descclassname">payulator.loan.</code><code class="sig-name descname">build_loan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="p">:</span> <span class="n">pathlib.Path</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="index.html#payulator.loan.Loan" title="payulator.loan.Loan">payulator.loan.Loan</a><a class="headerlink" href="#payulator.loan.build_loan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given the path to a JSON file encoding the parameters
+of a loan, read the file, check the parameters,
+and return a Loan instance with those parameters.</p>
+<p>The keys and values of the JSON dictionary should contain</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">code</span></code>: (string) code name for the loan</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kind</span></code>: (string) kind of loan; ‘amortized’ or ‘interest_only’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">principal</span></code>: (float) amount of loan, that is, the principal</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interest_rate</span></code>: (float) nominal annual interest rate
+(not as a percentage), e.g. 0.1 for 10%</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">payment_freq</span></code>: (string) payments frequency;
+one of the keys of <code class="xref py py-const docutils literal notranslate"><span class="pre">NUM_BY_FREQ</span></code>, e.g. ‘monthly’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compounding_freq</span></code>: (string) compounding frequency;
+one of the keys of <code class="xref py py-const docutils literal notranslate"><span class="pre">NUM_BY_FREQ</span></code>, e.g. ‘monthly’</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num_payments</span></code>: (integer) number of payments in the loan
+term</p></li>
+</ul>
+<p>Extra keys and values are allowed but will be ignored in
+the returned Loan instance.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="payulator.loan.check_loan_params">
+<code class="sig-prename descclassname">payulator.loan.</code><code class="sig-name descname">check_loan_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Dict</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#payulator.loan.check_loan_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a dictionary of the form loan_attribute -&gt; value,
+check the keys and values according to the specification
+in the docstring of <a class="reference internal" href="#payulator.loan.build_loan" title="payulator.loan.build_loan"><code class="xref py py-func docutils literal notranslate"><span class="pre">build_loan()</span></code></a> (allowing extra keys).
+Raise an error if the specification is not met.
+Otherwise return the dictionary unchanged.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="payulator.loan.prune_loan_params">
+<code class="sig-prename descclassname">payulator.loan.</code><code class="sig-name descname">prune_loan_params</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">params</span><span class="p">:</span> <span class="n">Dict</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="headerlink" href="#payulator.loan.prune_loan_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a dictionary of loan parameters, remove the keys
+not in <code class="xref py py-const docutils literal notranslate"><span class="pre">LOAN_ATTRS</span></code> and return the resulting,
+possibly empty dictionary.</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Payulator</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#usage">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#authors">Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#document-modules">Module constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#module-payulator.helpers">Module helpers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html#module-payulator.loan">Module loan</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Alex Raichev.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
